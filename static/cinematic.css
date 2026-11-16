@@ -1,0 +1,898 @@
+/* ==========================================================================
+   ReelReview — Cinematic Dark / Editorial UI
+   ------------------------------------------------------------------------ --
+   Scope: flash-screen, page-shell, header, search, film-grid, movie-card,
+   frontpage-top, review-block, metric-card, screens, keyframe-block.
+   ------------------------------------------------------------------------ -- */
+
+/* ==========================================================================
+   1. Variables & fonts
+   ========================================================================== */
+:root {
+  /* Surfaces */
+  --bg:       #0a0a0a;
+  --bg-raised:#0f0f0f;
+  --bg-card:  #141414;
+  --bg-hover: #1a1a1a;
+
+  /* Border & divider */
+  --line:     #222222;
+  --line-bright:#333333;
+
+  /* Text */
+  --ink:      #e8e4dd;   /* body / editorial text */
+  --ink-dim:  #9a948c;   /* muted captions / hints */
+  --ink-faint:#6b665e;
+
+  /* Editorial serif headline */
+  --serif:    "Playfair Display", "Georgia", "Times New Roman", serif;
+
+  /* Body sans */
+  --sans:     "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  /* Mono meta */
+  --mono:     "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* Warm accents */
+  --gold:     #d4a574;
+  --gold-deep:#b8864a;
+  --amber:    #c8843a;
+  --amber-soft:#b0782e;
+
+  /* Glow values */
+  --glow-gold:  rgba(212, 165, 116, 0.28);
+  --glow-amber: rgba(200, 132, 58, 0.30);
+
+  /* Spacing scale */
+  --s:  4px;
+  --m:  8px;
+  --l:  16px;
+  --xl: 24px;
+  --xxl:40px;
+
+  /* Typography scale (px) */
+  --fs-title:  34px;
+  --fs-h2:     22px;
+  --fs-h3:     18px;
+  --fs-body:   15px;
+  --fs-small:  13px;
+  --fs-caption: 11px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 0 var(--line-bright), 0 6px 18px rgba(0,0,0,0.35);
+  --shadow-card-hover: 0 2px 0 var(--line-bright), 0 10px 28px rgba(0,0,0,0.5);
+
+  /* Film grain */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   2. Reset / base
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cinematic grain overlay (applies to whole page) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--grain);
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: 99999;
+}
+
+/* ==========================================================================
+   3. Page shell
+   ========================================================================== */
+.stApp {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--xxl) var(--xl) var(--xxl);
+  background: var(--bg);
+}
+
+/* Main content area: we target the inner scroll container of the streamlit app.
+   Streamlit renders .main > .block-container which gives it a max-width & padding.
+   We neutralize that padding so our shell controls the margins. */
+.main > .block-container {
+  padding-top: var(--xxl) !important;
+  padding-bottom: var(--xxl) !important;
+}
+
+/* Center wide cards; keep the app visually tight */
+.stApp .column {
+  max-width: 1100px;
+  width: 100%;
+}
+
+/* ==========================================================================
+   4. Header / masthead
+   ========================================================================== */
+.masthead {
+  text-align: center;
+  margin-bottom: var(--xxl);
+  padding: var(--xxl) var(--xl);
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead-logo {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  text-shadow:
+    0 0 12px var(--glow-gold),
+    0 0 30px rgba(212, 165, 116, 0.18);
+  display: inline-block;
+  margin-bottom: var(--s);
+  position: relative;
+}
+
+.masthead-logo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  border-radius: 2px;
+}
+
+.masthead-tagline {
+  font-size: var(--fs-caption);
+  color: var(--ink-faint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+/* ==========================================================================
+   5. Search block
+   ========================================================================== */
+.search-wrap {
+  max-width: 640px;
+  margin: 0 auto var(--xxl);
+  padding: var(--xl) var(--xl) var(--xl) var(--s);
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.search-wrap:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--glow-gold), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.search-label {
+  font-size: var(--fs-caption);
+  color: var(--ink-faint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: var(--s);
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 18px;
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  color: var(--ink);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.search-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--glow-amber);
+}
+
+/* ==========================================================================
+   6. Section headings
+   ========================================================================== */
+.section-title {
+  font-family: var(--serif);
+  font-size: var(--fs-h2);
+  color: var(--ink);
+  margin: var(--xxl) 0 var(--m);
+  line-height: 1.3;
+  padding-bottom: var(--m);
+  border-bottom: 1px solid var(--line);
+}
+
+.section-title:first-child {
+  margin-top: 0;
+}
+
+.section-title .eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ==========================================================================
+   7. Film grid (cards row)
+   ========================================================================== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--xl);
+  margin: var(--xxl) 0;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  box-shadow: var(--shadow-card-hover), 0 0 18px var(--glow-gold);
+}
+
+.card-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  background: var(--bg-raised);
+  display: block;
+}
+
+.card-poster-placeholder {
+  width: 100%;
+  aspect-ratio: 2/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-raised);
+  color: var(--ink-faint);
+  font-size: var(--fs-caption);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+}
+
+.card-body {
+  padding: var(--l) var(--l) var(--xxl);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-size: var(--fs-h3);
+  line-height: 1.25;
+  color: var(--ink);
+  margin-bottom: var(--s);
+}
+
+.card-title:not(:first-of-type) {
+  margin-top: var(--m);
+}
+
+.card-year {
+  font-family: var(--mono);
+  font-size: var(--fs-caption);
+  color: var(--ink-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--m);
+  margin-top: var(--m);
+}
+
+.card-meta-item {
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+
+.card-meta-item strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* Rating chip */
+.rating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(212, 165, 116, 0.12);
+  border: 1px solid rgba(212, 165, 116, 0.25);
+  color: var(--gold);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+
+.rating-chip .thumb {
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* View link button */
+.card-link {
+  margin-top: var(--m);
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-family: var(--sans);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.card-link:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a0a0a;
+}
+
+/* ==========================================================================
+   8. Frontpage top (hero strip with title)
+   ========================================================================== */
+.frontpage-top {
+  text-align: center;
+  padding: var(--xxl) var(--xl);
+}
+
+.frontpage-title {
+  font-family: var(--serif);
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: var(--m);
+}
+
+.frontpage-title .accent {
+  color: var(--gold);
+  position: relative;
+}
+
+.frontpage-title .accent::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--gold), var(--amber), var(--gold));
+  border-radius: 3px;
+}
+
+.frontpage-sub {
+  font-size: var(--fs-body);
+  color: var(--ink-dim);
+  max-width: 560px;
+  margin: 0 auto var(--xl);
+}
+
+/* ==========================================================================
+   9. Screens / small presenter cards (film deck)
+   ========================================================================== */
+.screens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--l);
+  margin: var(--xxl) 0;
+}
+
+.screen {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.screen:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.screen-link {
+  display: block;
+  padding: var(--l) var(--l) 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.screen-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  background: var(--bg-raised);
+}
+
+.screen-body {
+  padding: var(--m);
+}
+
+.screen-title {
+  font-family: var(--serif);
+  font-size: var(--fs-body);
+  color: var(--ink);
+}
+
+.screen-year {
+  font-family: var(--mono);
+  font-size: var(--fs-caption);
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.screen-link:hover .screen-title {
+  color: var(--gold);
+}
+
+/* ==========================================================================
+   10. Movie card detail (overview) — the canonical card layout
+   ========================================================================== */
+.movie-card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--xl);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  padding: var(--xxl);
+}
+
+/* LEFT column: poster */
+.movie-card-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  background: var(--bg-raised);
+  border-radius: 2px;
+  position: relative;            /* re: .movie-card-score (absolute, top/right) */
+}
+
+/* poster decorative frame (unifies with the golden border on hover) */
+.movie-card-poster-frame {
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* LEFT column actions - separate from poster */
+.movie-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--l);
+  margin-top: var(--xl);
+}
+
+.movie-card-act-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.movie-card-act-link:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a0a0a;
+}
+
+/* score mini chips (top-right of poster) — optional, we show on card body */
+.movie-card-score {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--m);
+}
+
+.movie-card-score .pair {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+
+.movie-card-score .pair .val {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* show score in gold for positive, amber for negative */
+.movie-card-score .pair .val.pos { color: var(--gold); }
+.movie-card-score .pair .val.neg { color: var(--amber); }
+
+/* RIGHT column: text content */
+.movie-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.movie-card-title {
+  font-family: var(--serif);
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.25;
+  color: var(--ink);
+  margin-bottom: var(--s);
+}
+
+.movie-card-meta {
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+  margin-bottom: var(--xl);
+  line-height: 1.5;
+}
+
+.movie-card-meta .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.movie-card-meta .row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.movie-card-meta .row .label {
+  color: var(--ink-faint);
+}
+
+.movie-card-meta .row .value {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.movie-card-overview {
+  font-size: var(--fs-body);
+  color: var(--ink);
+  margin-bottom: var(--xl);
+  line-height: 1.7;
+}
+
+.movie-card-overview .lede {
+  font-family: var(--serif);
+  font-size: var(--fs-h3);
+  font-style: italic;
+  color: var(--ink-dim);
+  border-left: 2px solid var(--gold);
+  padding-left: var(--m);
+  margin-bottom: var(--l);
+}
+
+.movie-card-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--m);
+}
+
+.movie-card-genre {
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+
+/* ==========================================================================
+   11. Reviews block
+   ========================================================================== */
+.reviews-block {
+  margin-top: var(--xxl);
+}
+
+.review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--m);
+  margin-bottom: var(--m);
+}
+
+.review-total {
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+
+.sentiment-pill {
+  font-size: var(--fs-small);
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(212, 165, 116, 0.12);
+  border: 1px solid rgba(212, 165, 116, 0.25);
+  color: var(--gold);
+}
+
+.sentiment-pill.neg {
+  background: rgba(200, 132, 58, 0.12);
+  border-color: rgba(200, 132, 58, 0.25);
+  color: var(--amber);
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s);
+}
+
+.review-item {
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 2px;
+  padding: var(--l);
+  transition: border-color 0.2s;
+}
+
+.review-item:hover {
+  border-left-color: var(--gold);
+}
+
+.review-author {
+  font-size: var(--fs-caption);
+  color: var(--ink-dim);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  margin-bottom: var(--s);
+}
+
+.review-text {
+  font-size: var(--fs-body);
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.review-sentiment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--m);
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+
+.review-sentiment .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.review-sentiment .dot.pos { background: var(--gold); box-shadow: 0 0 6px var(--glow-gold); }
+.review-sentiment .dot.neg { background: var(--amber); box-shadow: 0 0 6px var(--glow-amber); }
+.review-sentiment .dot.unk { background: var(--ink-faint); }
+.review-sentiment .dot.err { background: #6b3a2a; }
+
+/* ==========================================================================
+   12. Metrics
+   ========================================================================== */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--m);
+  margin-bottom: var(--xl);
+}
+
+.metric-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: var(--l);
+  transition: border-color 0.2s;
+}
+
+.metric-card:hover {
+  border-color: var(--gold);
+}
+
+.metric-label {
+  font-size: var(--fs-caption);
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+.metric-pos .metric-value { color: var(--gold); }
+.metric-amb .metric-value { color: var(--amber); }
+
+/* ==========================================================================
+   13. Selection panel (side options)
+   ========================================================================== */
+.selection-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: var(--l);
+  margin-bottom: var(--xl);
+}
+
+.selection-panel .panel-label {
+  font-size: var(--fs-caption);
+  color: var(--ink-faint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: var(--s);
+}
+
+.selection-panel select,
+.selection-panel button {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.selection-panel select {
+  cursor: pointer;
+}
+
+.selection-panel select:focus,
+.selection-panel button:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--glow-amber);
+}
+
+.selection-panel button {
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.selection-panel button:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a0a0a;
+}
+
+/* ==========================================================================
+   14. Spinner / status
+   ========================================================================== */
+.spinner-wrap {
+  text-align: center;
+  padding: var(--xl) 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto var(--m);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner-text {
+  font-size: var(--fs-small);
+  color: var(--ink-faint);
+}
+
+/* ==========================================================================
+   15. Empty / error states
+   ========================================================================== */
+.empty-state {
+  text-align: center;
+  padding: var(--xxl);
+  color: var(--ink-dim);
+}
+
+.empty-state .emoji {
+  font-size: 40px;
+  margin-bottom: var(--m);
+}
+
+.empty-state .msg {
+  font-size: var(--fs-body);
+}
+
+/* ==========================================================================
+   16. Margin utility classes
+   ========================================================================== */
+.mt-auto { margin-top: auto; }
+.mb-auto { margin-bottom: auto; }
+.mt-xl  { margin-top: var(--xl); }
+.mb-xl  { margin-bottom: var(--xl); }
+
+/* ==========================================================================
+   17. print: hide nothing, just keep it readable
+   ========================================================================== */
+@media print {
+  body::before { display: none; }
+  .masthead-logo,
+  .search-wrap,
+  .card-link,
+  .movie-card-actions,
+  .review-sentiment { display: none !important; }
+  .movie-card {
+    display: block;
+    padding: var(--xxl);
+  }
+  .movie-card-poster { height: 320px; }
+}

@@ -1,0 +1,78 @@
+<!-- ==========================================================================
+     ReelReview — Movie Overview Template
+     Layout: [ LEFT cover (with scores top-right) | film meta ]
+     Then: description + extra info (rendered below the card)
+     ========================================================================== -->
+
+<div class="movie-card">
+
+  <!-- LEFT column: cover + top-right scores -->
+  <div class="movie-card-poster">
+    <div class="movie-card-poster-frame">
+      <img alt="{{ title }}" src="{{ poster_url }}">
+    </div>
+
+    <!-- Score chips, top-right of the poster -->
+    <div class="movie-card-score" style="position:absolute; top:var(--xl); right:var(--xl); display:flex; flex-direction:column; gap:6px;">
+      <div class="pair">
+        <span>Sentiment</span>
+        <span class="val">{{ score_1 }}</span>
+      </div>
+      <div class="pair">
+        <span>Kritiker</span>
+        <span class="val">{{ vote_average }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT column: text content -->
+  <div class="movie-card-body">
+
+    <!-- Title -->
+    <h1 class="movie-card-title">{{ title }}</h1>
+
+    <!-- Meta row: year / rating / votes -->
+    <div class="movie-card-meta">
+      <div class="row">
+        <span class="label">Jahr</span>
+        <span class="value">{{ year }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Kritiker-Bewertung</span>
+        <span class="value">{{ vote_average }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Bewertungen</span>
+        <span class="value">{{ vote_count }}</span>
+      </div>
+    </div>
+
+    <!-- Description / overview -->
+    <div class="movie-card-overview">
+      <p class="lede">{{ overview }}</p>
+      <p class="movie-card-genres">
+        {% for g in genres %}
+          <span class="movie-card-genre">{{ g }}</span>
+        {% endfor %}
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="movie-card-actions">
+      <a class="movie-card-act-link" href="{{ tmdb_url }}" target="_blank" rel="noopener">
+        <span class="thumb">&#9660;</span>
+        TMDB-Seite anzeigen
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     Path status (banner) — only when a specific path is set
+     ========================================================================== -->
+{% if path_status %}
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <p class="spinner-text">{{ path_status }}</p>
+  </div>
+{% endif %}
