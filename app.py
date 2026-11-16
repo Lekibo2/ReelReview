@@ -47,11 +47,20 @@ MAX_REVIEWS = 10
 # ---------------------------------------------------------------------------
 @st.cache_resource
 def load_sentiment_model():
-    """Lade das Sentiment-Modell beim ersten Aufruf in den Arbeitsspeicher."""
-    from transformers import AutoTokenizer, AutoModelForSequenceClassification
-    import torch
+    """Lade das Sentiment-Modell beim ersten Aufruf in den Arbeitsspeicher.
 
-    st.info("Sentiment-Modell wird geladen (erst einmalige Ladezeit, ~270 MB)...")
+    Die Lade-Nachricht wird nur beim wirklich ersten Aufruf gezeigt. Da
+    st.cache_resource den Funktionsrumpf nach dem ersten Aufruf nicht
+    wiederholt, genuegt ein einmaliger Hinweis; zusatzlich pruefen wir
+    st.session_state als Fallback gegen wiederholte Anzeige.
+    """
+    import torch
+    if not st.session_state.get("sentiment_model_loaded", False):
+        st.info("Sentiment-Modell wird geladen (erst einmalige Ladezeit, ~270 MB)...")
+        st.session_state.sentiment_model_loaded = True
+
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
     tokenizer = AutoTokenizer.from_pretrained(SENTIMENT_MODEL)
     model = AutoModelForSequenceClassification.from_pretrained(SENTIMENT_MODEL)
     model.eval()
@@ -408,7 +417,9 @@ def display_movie_overview(movie: dict):
     # Reviews / Sentiment-Analyse
     if reviews_with_text:
         st.markdown('<div class="reviews-block">', unsafe_allow_html=True)
-        st.markdown(f'<p class="review-total"><strong>Analysierte Reviews:</strong> {len(reviews_with_text)}</p>', unsafe_allow_html=True)
+        # Single summary line (no HTML, no raw header markup)
+        st.markdown('<p class="review-total">Analysierte Reviews: '
+                    f'{len(reviews_with_text)}</p>', unsafe_allow_html=True)
 
         sentiment_summary = summarize_sentiment(reviews_with_text)
         col_a, col_b = st.columns(2)

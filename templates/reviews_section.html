@@ -1,0 +1,28 @@
+<div class="reviews-block">
+
+  <p class="review-total">Analysierte Reviews: {{ total_reviews }}</p>
+
+  <div class="metrics">
+    <div class="metric-card metric-pos"><div class="metric-label">Positiv</div><div class="metric-value">{{ positive }}</div></div>
+    <div class="metric-card metric-amb"><div class="metric-label">Negativ</div><div class="metric-value">{{ negative }}</div></div>
+    <div class="metric-card"><div class="metric-label">Neutral</div><div class="metric-value">{{ neutral }}</div></div>
+    <div class="metric-card"><div class="metric-label">Unklar</div><div class="metric-value">{{ unknown }}</div></div>
+    <div class="metric-card"><div class="metric-label">Fehler</div><div class="metric-value">{{ error }}</div></div>
+  </div>
+
+  <p class="section-action-label">Einzel Reviews</p>
+
+  <div class="review-list">
+    {% for d in details %}
+    <div class="review-item">
+      <div class="review-author">{{ d.author }}</div>
+      <div class="review-text">{{ d.content }}</div>
+      <div class="review-sentiment">
+        <span class="dot {{ d.label | lower }}"></span>
+        {{ d.label }} ({{ d.score | replace(".", ",") }})
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
