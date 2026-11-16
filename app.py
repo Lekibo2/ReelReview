@@ -343,7 +343,11 @@ def search_movie():
         with st.spinner("Film wird gesucht..."):
             results = search_movies(query.strip())
         if results:
-            st.markdown('<h2 class="section-title"><span class="eyebrow">Ergebnisse</span></h2>', unsafe_allow_html=True)
+            # Section heading for results (styled via CSS, no inline HTML)
+            st.markdown(
+                '<div class="section-title"><span class="eyebrow">Ergebnisse</span></div>',
+                unsafe_allow_html=True
+            )
             col1, col2 = st.columns([3, 1])
             with col1:
                 for i, m in enumerate(results[:5]):
@@ -351,7 +355,7 @@ def search_movie():
                     title = m.get("title", "Unbekannt")
                     year = m.get("release_date", "Unbekannt")[:4]
                     overview = m.get("overview", "")
-                    st.markdown(f"<h3 class='card-title'>{title} ({year})</h3>", unsafe_allow_html=True)
+                    st.subheader(f"{title} ({year})")
                     if overview:
                         st.caption(overview[:220] + "..." if len(overview) > 220 else overview)
                     st.page_link(
@@ -361,7 +365,10 @@ def search_movie():
                     )
                     st.divider()
             with col2:
-                st.write("<strong>Auswahl:</strong>")
+                st.markdown(
+                    '<div class="section-action-label">Auswahl:</div>',
+                    unsafe_allow_html=True
+                )
                 selected = st.selectbox(
                     "Film auswaehlen",
                     results,
@@ -379,6 +386,9 @@ def display_movie_overview(movie: dict):
 
     Layout: links das Cover, oben rechts die beiden Scores, darunter die
     Beschreibung mit weiteren Infos.
+
+    Beide HTML-Blöcke (Film-Detail-Karte und Reviews) werden via Jinja2
+    Template gerendert; keine rohen HTML-Strings mehr im Python-Code.
     """
     if movie is None or not movie.get("id"):
         return
@@ -408,38 +418,46 @@ def display_movie_overview(movie: dict):
     # Normalisiere Sentiment auf 1..10
     sentiment_score_10 = normalize_sentiment_to_10(1.0 + avg_score * 9.0)
 
-    # Rendert das gesamte Movie-Overview via Jinja2-Template.
+    # --- 1. Film-Detail-Karte (Jinja2) ---
     # Das Template bindet score_1 (Sentiment-Score) und score_2 (Kritiker-Bewertung)
     # sowie den Beschreibungsblock und die Metadaten.
     html = render_movie_overview(movie, path_status=None)
     st.markdown(html, unsafe_allow_html=True)
 
-    # Reviews / Sentiment-Analyse
+    # --- 2. Reviews / Sentiment-Analyse (Jinja2) ---
+    # Nur die Reviews mit echtem Textinhalt werden analysiert.
     if reviews_with_text:
-        st.markdown('<div class="reviews-block">', unsafe_allow_html=True)
-        # Single summary line (no HTML, no raw header markup)
-        st.markdown('<p class="review-total">Analysierte Reviews: '
-                    f'{len(reviews_with_text)}</p>', unsafe_allow_html=True)
-
-        sentiment_summary = summarize_sentiment(reviews_with_text)
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.markdown(f'<div class="metric-card metric-pos"><div class="metric-label">Positiv</div><div class="metric-value">{sentiment_summary["positive"]}</div></div>', unsafe_allow_html=True)
-        with col_b:
-            neg = sentiment_summary["negative"]
-            st.markdown(f'<div class="metric-card metric-amb"><div class="metric-label">Negativ</div><div class="metric-value">{neg}</div></div>', unsafe_allow_html=True)
-
-        st.write("<strong>Einzel Reviews:</strong>")
-        for i, r in enumerate(reviews_with_text):
+        # Berechne die Einzel-Analyse für jede Review
+        details = []
+        for r in reviews_with_text:
             content = r.get("content", "")
             if len(content) > REVIEW_MAX_CHARS:
                 content = content[:REVIEW_MAX_CHARS].rsplit(" ", 1)[0] + "..."
-            with st.expander(f"Review {i+1} ({r.get('author', 'Unknown')})"):
-                st.write(content)
-                res = analyze_sentiment(content)
-                color = "green" if res["label"] == "POSITIVE" else "red"
-                st.write(f"Sentiment: {res['label']} ({res['score']:.2f})")
-        st.markdown('</div>', unsafe_allow_html=True)
+            res = analyze_sentiment(content)
+            details.append({
+                "author": r.get("author", "Unknown"),
+                "content": content,
+                "label": res["label"],
+                "score": res["score"],
+            })
+
+        # Aggregat (Gleich wie zuvor: Positiv/Negativ/etc.)
+        sentiment_summary = summarize_sentiment(reviews_with_text)
+
+        # Template-Daten sammeln
+        review_ctx = {
+            "total_reviews": len(reviews_with_text),
+            "positive": sentiment_summary["positive"],
+            "negative": sentiment_summary["negative"],
+            "neutral": sentiment_summary["neutral"],
+            "unknown": sentiment_summary["unknown"],
+            "error": sentiment_summary["error"],
+            "details": details,
+        }
+
+        # Rendert den Reviews-Block als eigenes Template
+        t = _get_template_env().get_template("reviews_section.html")
+        st.markdown(t.render(**review_ctx), unsafe_allow_html=True)
     else:
         st.info("Keine Reviews mit Text fuer diesen Film gefunden "
                 "(Der Film hat sehr wenige Reviews oder diese enthalten keinen "
@@ -461,7 +479,11 @@ def display_home():
             display_movie_overview(selected)
     else:
         # Startseite mit Empfehlungen
-        st.markdown('<h2 class="section-title"><span class="eyebrow">Empfohlene Filme</span></h2>', unsafe_allow_html=True)
+        # Section heading for recommendations (styled via CSS, no inline HTML)
+        st.markdown(
+            '<div class="section-title"><span class="eyebrow">Empfohlene Filme</span></div>',
+            unsafe_allow_html=True
+        )
         with st.spinner("Lade zufällige Filme..."):
             movies = get_random_movies(6)
 
@@ -474,7 +496,7 @@ def display_home():
                     year = m.get("release_date", "")[:4]
                     rating = m.get("vote_average", 0)
 
-                    st.markdown(f"<h3 class='card-title'>{title}</h3>", unsafe_allow_html=True)
+                    st.subheader(f"{title} ({year})")
                     st.caption(f"{year} | {rating:.1f}/10")
 
                     if poster:

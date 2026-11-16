@@ -19,7 +19,7 @@
       <div class="review-text">{{ d.content }}</div>
       <div class="review-sentiment">
         <span class="dot {{ d.label | lower }}"></span>
-        {{ d.label }} ({{ d.score | replace(".", ",") }})
+        {{ d.label }} ({{ d.score }})
       </div>
     </div>
     {% endfor %}
