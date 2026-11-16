@@ -1,4 +1,4 @@
-.agents
-.streamlit
-.venv
-__pycache__
+.agents/
+.streamlit/
+.venv/
+__pycache__/
